@@ -1,11 +1,49 @@
 # TV compatibility evidence
 
-Updated 28 October 2026. App rendering and native Home reassignment need separate evidence. Tizen version alone does not establish support. The source manifest requires Tizen 6.5; older adapted builds do not change that requirement.
+Updated 28 October 2026. App rendering and native Home reassignment need separate evidence. Tizen version alone does not establish support. The upstream revision used as this fork's base requires Tizen 6.5; this fork declares 5.5.
+
+## This fork: GU43TU8079UXZG adaptation
+
+This checkout lowers the manifest requirement to 5.5 for an explicitly authorised
+standalone-app experiment on a non-Frame TV. The device reports Tizen 5.5/ARMv7;
+firmware `T-NKLDEUC-2743.0` has also been read directly from the TV.
+The separately signed app installed and launched successfully; the owner
+confirmed rendering, arrow navigation and Netflix launch. This does not
+establish every app target or native Home/startup compatibility.
+
+Fork version 0.6.3 is installed. The owner also confirmed the German interface,
+24-hour clock, monochrome ARD/ZDF marks and new landscape-and-frame app icon in
+Samsung's app list. Updates retained the same private app identity and author
+certificate; neither is included in this repository.
+
+The initial Home contains Netflix, YouTube, Prime Video, Disney+, Apple TV,
+ARD Mediathek and ZDF, using IDs read from the device. Saved choices still take
+precedence. TV settings replaces the Frame-only Art Mode shortcut. Samsung Home
+and Settings component IDs were found in the app inventory, but their visible
+destinations still require an on-device check.
+
+The owner subsequently requested native Home/startup investigation. Read-only
+SDK diagnostics confirmed UID 901, .NET 3.0.0, no `/usr/bin/dotnet`, and a
+root-owned, SDK-read-only Home routing database. The original `home_appid`,
+`overlay_home_appid` and `startup_appid` preferences are absent, not non-empty
+values suitable for the maintained helper. A consistent routing database
+snapshot and typed preference evidence were saved privately, with matching
+TV/host SHA256 and successful SQLite integrity checks.
+
+No native Home/startup values have been changed and no root method has been
+executed. The physical Home button retains Samsung's existing behaviour.
+Native restore and cold boot remain untested. Neither the inventory nor the
+native database snapshot is a full firmware/system recovery image. Device
+addresses, owner identity, certificates and backup records remain outside
+tracked source.
+Further native Home/startup/root work was explicitly paused. The native
+diagnostic and cleanup scripts are private, not part of this fork.
 
 ## Recorded results
 
 | TV / platform | Web launcher | Native Home | Evidence |
 | --- | --- | --- | --- |
+| This fork: GU43TU8079UXZG, Tizen 5.5, firmware T-NKLDEUC-2743.0 | Installed through 0.6.3; owner confirmed UI, navigation, Netflix, localization and icons | Not changed; no fixed startup or root applied | Evidence summarized above; private identifiers and recovery records excluded |
 | Maintainer LS03D, Tizen 9, firmware 2130.0 | Installation and selected remote flows confirmed; other checks remain pending | Exact-value restore/reapply and Home from Netflix confirmed | [Maintainer record](tv-status.md) |
 | QN43Q60BAFXZA, Tizen 6.5, Chromium 85 | Contributor reports rendering, navigation and hidden-boot work in their adapted fork; this branch reworks the boot path | Contributor reports query/apply/restore/reapply, cold boot and Home from Netflix | [PR #2](https://github.com/nthnclrk/CleanFrame/pull/2), [PR #5](https://github.com/nthnclrk/CleanFrame/pull/5) |
 | QA75LS03BASXNZ, Tizen 6.5, Chromium 85 | Contributor reports Dock labels and rounded utility focus fixed in their adapted build | No native Home result supplied | [PR #10](https://github.com/nthnclrk/CleanFrame/pull/10) |

@@ -33,7 +33,7 @@ function check(name, pass, detail) {
   if (!pass) { report.failures.push(result); throw Error(name + (detail ? ': ' + JSON.stringify(detail).slice(0, 500) : '')); }
 }
 async function run(name, fn) {
-  if (process.env.CHECK_SECTION && !name.toLowerCase().includes(process.env.CHECK_SECTION.toLowerCase())) return;
+  if (process.env.CHECK_SECTION && !process.env.CHECK_SECTION.toLowerCase().split('|').some(part => name.toLowerCase().includes(part))) return;
   section = name;
   try { await fn(); console.log(name + ': passed'); }
   catch (error) { if (!report.failures.some(f => f.section === name)) report.failures.push({ section: name, error: error.stack }); console.error(name + ': ' + error.message); }
@@ -214,6 +214,74 @@ async function noLiveFilters() {
 
 try {
   preview = await openPreview();
+  await run('Local Tizen 5.5 defaults', async () => {
+    const home = ['netflix', 'youtube', 'primevideo', 'disneyplus', 'appletv', 'SrAoJxGQUf.ARD', 'yPSlpvfeTf.ZDFmediathek'];
+    const targets = [IDS[1], IDS[3], IDS[5], IDS[2], IDS[4], home[5], home[6]];
+    await page({ seed: {}, catalog: CATALOG.concat([
+      { id: home[5], name: 'ARD Mediathek', show: true },
+      { id: home[6], name: 'ZDF', show: true }
+    ]) });
+    check('Fresh Home contains only the seven selected apps', same((await state()).dock, home));
+    check('Non-Frame control opens TV settings instead of Art Mode', await current.locator('[data-action="util.tv"]').count() === 1 && await current.locator('[data-action="util.art"]').count() === 0);
+    await library();
+    for (const [id, brand] of [[home[5], 'ard'], [home[6], 'zdf']]) {
+      check(brand + ' keeps its bundled mark after discovery', await current.locator('[data-action="apps.open.' + id + '"] [data-mark="' + brand + '"]:not(.is-bad)').count() === 1);
+    }
+    await scene('home');
+    for (let i = 0; i < home.length; i++) {
+      await act('home.app.' + home[i]);
+      await current.waitForFunction(count => __tv.calls.length === count, i + 1);
+      check('Selected app retains its installed target: ' + home[i], (await current.evaluate(() => __tv.calls.at(-1))).id === targets[i]);
+      await current.evaluate(() => window.dispatchEvent(new Event('focus')));
+    }
+    const records = (await stored()).appRecords;
+    check('German app names are saved with their native IDs', records.some(a => a.appId === home[5] && a.name === 'ARD Mediathek') && records.some(a => a.appId === home[6] && a.name === 'ZDF'));
+    await current.reload(); await ready();
+    check('Selected Home apps survive reload', same((await state()).dock, home));
+    await current.screenshot({ path: out + 'local-tizen55-home.png' });
+  });
+  await run('Local German interface', async () => {
+    const home = ['netflix', 'youtube', 'primevideo', 'disneyplus', 'appletv', 'SrAoJxGQUf.ARD', 'yPSlpvfeTf.ZDFmediathek'];
+    const seed = baseline({ dock: home, appRecords: [
+      { id: home[5], appId: home[5], name: 'ARD Mediathek', brand: '' },
+      { id: home[6], appId: home[6], name: 'ZDF', brand: '' }
+    ] });
+    await page({ seed });
+    check('Document declares German', await current.locator('html').getAttribute('lang') === 'de-DE');
+    check('Existing order survives the localized update', same((await state()).dock, home));
+    for (const [hour, minute, expected] of [[0, 5, '00:05'], [9, 7, '09:07'], [13, 45, '13:45'], [23, 59, '23:59']]) {
+      const time = await current.evaluate(([h, m]) => new Date(2026, 9, 28, h, m).getTime(), [hour, minute]);
+      await current.clock.setFixedTime(new Date(time));
+      await scene('home');
+      check('Exact 24-hour clock at ' + expected, await current.locator('#caption .clock').textContent() === expected);
+    }
+    for (const layout of ['dock', 'list']) {
+      await look({ bg: 'dark', layout, apps: 'both' });
+      for (const [id, brand] of [[home[5], 'ard'], [home[6], 'zdf']]) {
+        const mark = current.locator((layout === 'dock' ? '#track ' : '#phRows ') + '[data-action="home.app.' + id + '"] [data-mark="' + brand + '"]');
+        check(brand + ' replaces old monogram in ' + layout, await mark.count() === 1 && !(await mark.getAttribute('class')).includes('is-bad'));
+      }
+    }
+    await scene('settings');
+    check('Settings overview is German', same(await current.locator('.settings-group-name').allTextContents(), ['Hintergrund', 'Layout', 'Schriftart', 'Auswahl', 'Apps auf der Startseite', 'Samsung']));
+    for (const [id, expected] of [['background', 'Hintergrund'], ['layout', 'Layout'], ['typography', 'Schriftart'], ['focus', 'Auswahl'], ['samsung', 'Samsung']]) {
+      await group(id);
+      check(id + ' has a German heading', await current.locator('#appearanceTitle').textContent() === expected);
+      const overflow = await current.locator('.setting-name:visible, .setting-description:visible').evaluateAll(nodes => nodes.filter(n => n.scrollWidth > n.clientWidth + 2).map(n => n.textContent));
+      check(id + ' translated labels fit', overflow.length === 0, overflow);
+      check(id + ' has no English UI text', !/\b(?:Settings|Background|Choose|Wallpaper|Apply|Return|Both|Glass|Photo)\b/.test(await current.locator('#appearance').innerText()));
+    }
+    await scene('home'); await nav('back');
+    check('Exit confirmation is German', await current.locator('.msg-title').textContent() === 'Startseite verlassen?');
+    await nav('back');
+    await current.evaluate(() => { __tv.launchFailure = true; });
+    await act('home.app.netflix');
+    await current.waitForFunction(() => ShoreQA.state().view === 'message');
+    check('Launch errors are German', await current.locator('.msg-line').textContent() === 'Der TV konnte diese Ansicht nicht öffnen.');
+    await scene('home'); await look({ bg: 'photo', layout: 'dock', apps: 'both' });
+    await nav('right', 'right', 'right', 'right', 'right');
+    await current.screenshot({ path: out + 'local-german-home.png' });
+  });
   await run('Legacy preference migration', async () => {
     for (const theme of ['list', 'shore', 'grid']) {
       await page({ seed: baseline({ theme, dock: ['youtube', 'netflix'], wallpaper: walls[1].id, lastApp: 'youtube', mode: '15' }) });
@@ -408,9 +476,9 @@ try {
     await scene('home'); await act('home.app.netflix'); await current.waitForFunction(() => __tv.calls.length === 2);
     check('Primary app keeps verified target', (await current.evaluate(() => __tv.calls.at(-1))).id === IDS[1]);
     await current.evaluate(() => window.dispatchEvent(new Event('focus')));
-    await act('util.art'); await current.waitForFunction(() => __tv.calls.length === 3);
-    const art = await current.evaluate(() => __tv.calls.at(-1));
-    check('Art Mode uses app-control with fullscreen request', art.method === 'launchAppControl' && art.id === 'org.tizen.art-app' && art.control.data.some(d => d.key === 'mode' && d.value[0] === 'fullscreen'), art);
+    await act('util.tv'); await current.waitForFunction(() => __tv.calls.length === 3);
+    const tvSettings = await current.evaluate(() => __tv.calls.at(-1));
+    check('Non-Frame shortcut launches TV settings without Art Mode', tvSettings.method === 'launch' && tvSettings.id === 'com.samsung.tv.coba.setting', tvSettings);
     await current.evaluate(() => window.dispatchEvent(new Event('focus'))); await group('samsung'); await act('samsung.home');
     await current.waitForFunction(() => __tv.calls.length === 4);
     check('Samsung escape keeps CSFS target', (await current.evaluate(() => __tv.calls.at(-1))).id === 'com.samsung.tv.csfs');
@@ -419,7 +487,7 @@ try {
     check('TV settings keeps installed target', (await current.evaluate(() => __tv.calls.at(-1))).id === 'com.samsung.tv.coba.setting');
     await current.evaluate(() => { window.dispatchEvent(new Event('focus')); __tv.launchFailure = true; });
     await scene('home'); await act('home.app.netflix'); await current.waitForFunction(() => ShoreQA.where().view === 'message');
-    check('Launch failure is shown', /could not|unavailable|try again/i.test(await current.locator('#stage').innerText()));
+    check('Launch failure is shown', /konnte.*nicht|nicht verfügbar|erneut versuchen/i.test(await current.locator('#stage').innerText()));
   });
   await run('Independent app identity self-filter', async () => {
     const appId = 'AbCdEf1234.MyHome';
@@ -488,13 +556,13 @@ try {
     await editor(); const ids = (await state()).dock;
     for (const id of ids.slice(1)) await remove(id);
     await remove(ids[0]); check('Last Home app cannot be removed', same((await state()).dock, [ids[0]]) && same((await stored()).dock, [ids[0]]));
-    check('Editor has no Save action', !(await current.locator('#stage').innerText()).match(/\bSave\b/));
+    check('Editor has no Save action', !(await current.locator('#stage').innerText()).match(/\bSpeichern\b/));
   });
   await run('Actual storage failures are atomic', async () => {
     await page(); await editor(); const before = await stored();
     await current.evaluate(() => { window.__failWrites = true; }); await remove('netflix');
     check('Failed removal changes neither committed state nor storage', same((await state()).dock, before.dock) && same(await stored(), before));
-    check('Failed write gives visible feedback', /not saved|couldn.t save|tries again/i.test(await current.locator('#stage').innerText()));
+    check('Failed write gives visible feedback', /nicht gespeichert|speichern fehlgeschlagen|erneut versuchen/i.test(await current.locator('#stage').innerText()));
     await current.evaluate(() => { window.__failWrites = false; }); await nav('ok');
     check('Retry commits through same action', !(await stored()).dock.includes('netflix'));
     await scene('home'); const old = await state(), oldStored = await stored();
@@ -680,7 +748,7 @@ try {
       await walkEnabledChoices();
       check(bg + ' remote navigation skips inactive photo tools', same(await settingsSnapshot(), before));
       const reason = await current.locator('.setting-reason:visible').allTextContents();
-      check(bg + ' explains how to enable photo tools', reason.some(text => /photo/i.test(text) && /wallpaper|rotation/i.test(text)), reason);
+      check(bg + ' explains how to enable photo tools', reason.some(text => /foto/i.test(text) && /hintergrundbild|bildwechsel/i.test(text)), reason);
     }
   });
   await run('Settings normalises remembered inactive focus', async () => {
@@ -821,14 +889,14 @@ try {
   });
   await run('Wallpaper applies in place and Back keeps the latest applied photo', async () => {
     await page(); await wallpaper(); const before = await wallpaperSaved();
-    check('Applied wallpaper omits the redundant Apply hint', !/apply.*photo/i.test(await current.locator('#appearanceDesc').innerText()));
+    check('Applied wallpaper omits the redundant Apply hint', !/foto übernehmen/i.test(await current.locator('#appearanceDesc').innerText()));
     await nav('down'); await wallpaperSettled(walls[1].id);
     check('A browsed photo is not saved by focus', same(await wallpaperSaved(), before));
-    check('Unsaved preview explains the OK action', /apply.*photo/i.test(await current.locator('#appearanceDesc').innerText()));
+    check('Unsaved preview explains the OK action', /foto übernehmen/i.test(await current.locator('#appearanceDesc').innerText()));
     await nav('ok'); await ready();
     const applied = await wallpaperSaved();
     check('OK applies once while staying inside Wallpaper', (await state()).view === 'wallpaper' && applied.committed.wall === walls[1].id && applied.writes === before.writes + 1 && applied.attempts === before.attempts + 1 && same(await wallpaperApplied(), ['wallpaper.choose.' + walls[1].id]));
-    check('Successful apply clears its redundant Apply hint', !/apply.*photo/i.test(await current.locator('#appearanceDesc').innerText()));
+    check('Successful apply clears its redundant Apply hint', !/foto übernehmen/i.test(await current.locator('#appearanceDesc').innerText()));
     check('Applied photo updates the committed Settings backdrop', applied.backdrop.src.includes('/' + walls[1].id + '-panel.jpg'));
     await nav('ok'); await current.keyboard.down('Enter'); await current.keyboard.down('Enter'); await current.keyboard.up('Enter');
     check('Repeated OK on the applied photo is a no-op', same(await wallpaperSaved(), applied));
@@ -847,7 +915,7 @@ try {
     await page(); await wallpaper(); const before = await wallpaperSaved();
     await nav('up');
     check('Up from the first wallpaper reaches Back without wrapping', (await state()).focusAction === 'wallpaper.back' && (await state()).shown.wall === walls[0].id);
-    check('Back still shows its return hint', /background|return/i.test(await current.locator('#appearanceDesc').innerText()));
+    check('Back still shows its return hint', /hintergrund|zurück/i.test(await current.locator('#appearanceDesc').innerText()));
     await nav('down');
     check('Down from Back restores the current candidate', (await state()).focusAction === 'wallpaper.choose.' + walls[0].id);
     await nav(...Array(walls.length - 1).fill('down')); await wallpaperSettled(walls.at(-1).id); await wallpaperRowVisible(walls.at(-1).id);
@@ -931,7 +999,7 @@ try {
     await current.route(pattern, route => route.abort('failed'));
     await nav('down'); await current.waitForFunction(() => ShoreQA.actions().includes('wallpaper.retry'));
     check('Failed browse restores the committed frame rather than another unsaved preview', (await state()).shown.wall === before.committed.wall && same(await wallpaperSaved(), before) && same(await wallpaperApplied(), ['wallpaper.choose.' + before.committed.wall]));
-    check('Failed candidate remains identified for retry', (await state()).wallpaperPicker.candidate === target && /couldn.t|failed|try again/i.test(await current.locator('#appearance').innerText()));
+    check('Failed candidate remains identified for retry', (await state()).wallpaperPicker.candidate === target && /fehlgeschlagen|erneut versuchen/i.test(await current.locator('#appearance').innerText()));
     await current.unroute(pattern); await act('wallpaper.retry'); await wallpaperSettled(target);
     check('Retrying a failed browse does not authorise a save', same(await wallpaperSaved(), before) && !(await state()).wallpaperPicker.applyPending);
     check('Successful preview Retry returns focus to its candidate', (await state()).focusAction === 'wallpaper.choose.' + target);
@@ -1012,7 +1080,7 @@ try {
     const focus = (await state()).focusAction; await current.keyboard.press('ArrowDown');
     check('Warm return restores remote focus', (await state()).focusAction !== focus && (await call('where')).focusCount === 1);
     const clock = await current.locator('#caption .clock').textContent();
-    check('Live 12-hour clock has no AM/PM', /^\s*\d{1,2}:\d{2}\s*$/.test(clock), clock);
+    check('Live clock uses zero-padded 24-hour time', /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(clock), clock);
   });
   await run('Open rotation and browser fallback', async () => {
     await page({ seed: baseline({ mode: 'open' }) }); check('Open mode advances at cold start', (await state()).wallpaper === walls[1].id);

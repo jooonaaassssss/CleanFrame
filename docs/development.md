@@ -4,11 +4,21 @@
 
 Start with Node.js 22.13+ (22 LTS), or 24+, and Python 3.10+, then `npm ci`. These are the supported development baselines; lower versions have not been checked. Install Chromium once with `npx playwright install chromium` for the optional browser tools. Linux hosts may also need Playwright's documented system dependencies (`npx playwright install --with-deps chromium`).
 
+On Windows, the browser runner uses `python`, or the executable selected by
+`PYTHON`. Set `PYTHONUTF8=1` for the Python source checks. The existing npm
+Python commands use `python3`; when that alias is absent, invoke the corresponding
+script with `python` directly. Signing through `package.py` remains macOS/Linux
+only; use the official Samsung tools for a Windows-signed package.
+
 `npm run dev` starts http://localhost:4795/home/, bound to this computer only. `/home/` serves `app/`, the same source used in the signed widget. Arrow keys, Enter and Escape mirror remote navigation. Device controls report that they require the TV; no success is simulated.
 
 `npm run dev:public` serves the same interface using only the bundled public fonts, even when paid Pangram files exist locally. For a contributor's fresh clone, use the README and `docs/for-agents.md`; the signing/device setup below describes the reference machine and needs adaptation for another owner.
 
-All UI assets, public fonts and the fifteen wallpapers are bundled. This private build also includes the three locally installed Pangram families through an ignored build overlay; their binaries are not in the public source tree. Glass materials and blurred panel backgrounds are rendered ahead of time; see app/assets/wallpapers/README.md.
+All UI assets, public fonts and the fifteen wallpapers are bundled. This fork
+does not include paid Pangram binaries. Upstream's optional local overlay is
+retained for owners with their own embedding rights; public preview/export
+excludes it. Glass materials and blurred panel backgrounds are rendered ahead
+of time; see app/assets/wallpapers/README.md.
 
 ## Runtime map and compatibility
 
@@ -18,13 +28,31 @@ All UI assets, public fonts and the fifteen wallpapers are bundled. This private
 - Preferences use localStorage key `cleanframe.home.v1`, with a fallback read from `cleanframe.shore.v1`. Legacy fields are `dock`, `wallpaper`, `mode`, `lastApp` and `theme`. The 0.6 migration preserves app order, wallpaper, rotation and selection. Legacy `list` becomes Dark / List / Type; `shore` and `grid` become Photo / Dock / Glass. Appearance axes are stored separately. A saved dynamic app keeps its real app ID and name; discovery refreshes the installed catalogue. Keep migration checks when changing this format.
 - `window.ShoreQA.state()` and `.where()` expose state and focus for browser tests. `minuteMs` can shorten rotation intervals in an isolated browser test.
 
-The tested target is the Tizen 9.0 TV in [TV status](tv-status.md); [contributor reports](compatibility.md) cover other TVs. The manifest's `required_version="6.5"` is a package declaration, not proof of broad Tizen 6.5 support. The exact reference TV Chromium/WebKit engine version has not been recorded. `npm run lint` uses ESLint's ES5 grammar for all runtime JavaScript and checks undefined names, unused code and dynamic evaluation. This does not check DOM/CSS or TV API availability; verify new APIs on the target before claiming support. The CSS guard rejects `inset` and flex `gap` declarations; use explicit top/right/bottom/left edges and child margins. The spacing fallback addresses the older engine reported in PR #11 without changing the package minimum. Geometry checks cover both Home layouts, all three control modes and both preview sizes; they do not establish TV compositor support. Tooling stays in development dependencies and outside the widget. See [ESLint's language options](https://eslint.org/docs/latest/use/configure/language-options).
+This fork's tested target is the GU43TU8079UXZG / Tizen 5.5 described in
+[compatibility](compatibility.md). The Tizen 9.0 [TV status](tv-status.md) record
+belongs to upstream. The manifest's `required_version="5.5"` is a package
+declaration, not proof of support for every Tizen 5.5 TV.
+
+`npm run lint` uses ESLint's ES5 grammar for runtime JavaScript and checks
+undefined names, unused code and dynamic evaluation. It does not check
+DOM/CSS or TV API availability. The CSS guard rejects `inset` and flex `gap`;
+use explicit edges and child margins. Geometry checks cover both layouts,
+control modes and preview sizes, but do not establish TV compositor support.
+Tooling stays outside the widget. See [ESLint's language options](https://eslint.org/docs/latest/use/configure/language-options).
 
 Keep material rendering in the development tools. See [asset generation](assets.md) and [testing](testing.md).
 
 ## Local TV tools and signing
 
-This Mac's setup lives under `.local/` and is excluded from Git:
+The installed Windows/Tizen 5.5 build used private owner-specific preparation,
+the official Samsung `tz.exe pack` signer and SDB `vd_appinstall`. Personal
+preparation scripts and rollback records are deliberately not published.
+Create your own SDK project identity and certificates; never install the
+unchanged reference-identity public export. On Windows, use the official SDK
+for an owner-specific package rather than the POSIX `package.py` runner.
+
+The retained upstream Mac tooling expects local setup under `.local/`,
+excluded from Git:
 
 - `tizen-sdk/`: official Tizen SDK command-line tools, embedded Java and SDB.
 - `certificates/private/`: Samsung-issued author/distributor certificates, private keys, protected PKCS12 files and their generated password.
@@ -37,13 +65,21 @@ For another owner, copy `signing.example.json` to `.local/signing.json` and repl
 
 Select the profile's existing `profiles.xml` through the official SDK configuration if needed; see [Samsung's CLI configuration and packaging documentation](https://developer.samsung.com/smarttv/develop/getting-started/using-sdk/command-line-interface.html). Certificate Manager can store certificates in its own folders. CleanFrame uses those existing paths without moving or rewriting them.
 
-`npm run export:public` is a separate offline, unsigned export. It always disables the proprietary overlay, includes the project/third-party notices and writes `dist/CleanFrame-public-unsigned.wgt`. It reads no signing credentials and contacts no TV. Use it for public build preparation; `npm run package` on this machine remains a personal build that can contain paid fonts. Asset release checks are listed in `docs/public-release.md`.
+`npm run export:public` is a separate offline, unsigned export. It disables
+the proprietary overlay, includes the project/third-party notices and writes
+`dist/CleanFrame-public-unsigned.wgt`. On Windows use
+`python scripts\export-public.py`. It reads no signing credentials, retains
+the source reference identity and contacts no TV. An owner-specific
+`npm run package` build can include locally supplied paid fonts; do not
+publish it. Asset release checks are in `docs/public-release.md`.
 
 Leave `password_file` as `null` or omit it to use the SDK's saved password access. No extra plaintext copy is required. An unexpected password prompt fails immediately; configure password access in the official tools or explicitly select a password file. The optional file must be owned by the current user, have mode `600` or `400`, and reside in `.local/` or outside the repo. A symlink at the final filename and files inside `app/` or `.git/` are rejected; parent symlinks are resolved before the location check. This fallback supplies one password to at most two certificate prompts and declines password-saving prompts; use SDK-managed access for certificates with different passwords. SDK signing output is suppressed so credentials cannot enter diagnostics. Fixed validation messages identify password-prompt, timeout, failed-command, missing-signature and identity errors without copying SDK output.
 
 With no `.local/signing.json`, the original maintainer defaults remain: `.local/tizen-sdk`, profile `FrameHome`, the source manifest identity, and the existing private password file if present. Its permissions must satisfy the same checks. The SDK must already be configured; automatic SDK/profile repair has been removed. Actual signing with an owner's certificates requires a separate local check; offline tests use a fake SDK.
 
-The initial custom XML-signature implementation was rejected by the TV. Use the official SDK packager for future builds; the installed test was signed with Tizen CLI 2.5.25.
+Upstream's initial custom XML-signature implementation was rejected by its TV.
+Use the official SDK signer. Its older Tizen CLI 2.5.25 result is upstream
+evidence, not the Windows toolchain used for this fork.
 
 ## Another checkout or Mac
 
@@ -71,16 +107,16 @@ For developer access, connect the TV and Mac to the same network, enable Develop
 - [Samsung app-launch sample](https://github.com/SamsungDForum/LaunchApp)
 - [Samsung remote input guide](https://developer.samsung.com/smarttv/develop/guides/user-interaction/remote-control.html)
 
-## Native Home and recovery
+## Native Home and recovery: upstream-only tooling
 
-Native Home/startup was configured separately from the app installer. Physical Home from Netflix is confirmed. The one-shot helper runs as the SDK user. See scripts/native-home/README.md and docs/tv-status.md for the tested firmware and pending visual checks.
+Home/startup was configured on the upstream reference TV, not on this fork's
+GU43TU8079UXZG. Native work on this fork is paused. The unchanged helper has
+different model, firmware, runtime and original-value requirements and must
+not be used on this target or have its guards removed.
 
-Query with `python3 scripts/native-home/run.py query`. Restore the saved pre-integration Home/startup values with `python3 scripts/native-home/run.py restore`. The private baseline is `.local/native-home/original.json`; preserve it and do not replace it with the applied state. The legacy `.local/native-home/run.py` command is also retained. Restore before uninstalling CleanFrame or changing its stable app identity.
-
-To rebuild the one-shot helper with this Mac's private verified SDK:
-
-```sh
-DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 DOTNET_CLI_HOME="$PWD/.local/native-home/cli" .local/native-home/dotnet-sdk/dotnet build scripts/native-home/Control.csproj -c Release --nologo -p:BaseIntermediateOutputPath="$PWD/.local/native-home/obj/" -o .local/native-home/out
-```
-
-The helper's output is not packaged inside the web app. Keep the original values, compiler, runtime output and all device diagnostics ignored.
+The historical procedure is retained in [native-home](../scripts/native-home/README.md)
+and [upstream TV status](tv-status.md). It requires a separate device task,
+explicit owner permission and a verified exact-value recovery path.
+An inventory or routing-database snapshot is not a full firmware backup.
+The helper is not packaged inside the web app. Keep all recovery records,
+native binaries and device diagnostics private.

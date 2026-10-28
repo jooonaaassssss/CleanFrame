@@ -2,6 +2,10 @@
 
 The root MIT licence covers CleanFrame's original code and documentation. Third-party material retains the terms below. Keep these notices and the adjacent licence texts when sharing source or a build.
 
+This fork retains Nathan Clark's original MIT licence and copyright notice
+unchanged. Its code/documentation adaptations and original app icon are also
+provided under MIT. This does not relicense any third-party material.
+
 ## Fonts
 
 | Material | Terms and source record |
@@ -17,8 +21,9 @@ The public app uses Manrope, Geist and Newsreader. A personal widget containing 
 | Material | Provenance and terms |
 | --- | --- |
 | Simple Icons service marks | CC0; exact revisions and adaptations in `app/assets/icons/SOURCES.json` and `ADDITIONAL-SOURCES.json`. The CC0 text is retained beside the icons. |
-| Disney+, ABC and SBS marks | [Custom Brand Icons](https://github.com/elax46/custom-brand-icons), MIT. The retained licence is `app/assets/icons/CUSTOM-BRAND-ICONS-LICENSE.txt`. ABC and SBS sources were replaced during the public-source review. Exact revisions, source files and extraction/recolour notes are in `SOURCES.json`. |
+| Disney+, ABC, SBS and ARD marks | [Custom Brand Icons](https://github.com/elax46/custom-brand-icons), MIT. The retained licence is `app/assets/icons/CUSTOM-BRAND-ICONS-LICENSE.txt`. ABC and SBS sources were replaced during the public-source review. Exact revisions, source files and extraction/recolour notes are in `SOURCES.json` and `ADDITIONAL-SOURCES.json`. |
 | Art, apps, settings and home outlines | Original CleanFrame drawings, covered by the project's MIT licence. |
+| CleanFrame landscape-and-frame app icon | Original drawing in `app/assets/cleanframe-logo.svg`, covered by the project's MIT licence. |
 
 Brand marks identify services. Their owners retain trademark rights; this project claims no endorsement or affiliation. The older Australian TV icon archive's GPL text is retained for historical provenance only; no current icon uses that archive.
 

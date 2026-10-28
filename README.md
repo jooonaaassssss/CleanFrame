@@ -1,73 +1,106 @@
-# CleanFrame
+# CleanFrame Deutsch
 
-A quieter home screen for Samsung The Frame. Your apps, a photograph and the time, with an interface made for the TV remote.
+<img src="app/icon.png" width="96" height="96" alt="CleanFrame: Landschaft mit hellem Bilderrahmen">
 
-![CleanFrame browser preview using the bundled Manrope font](docs/images/cleanframe-dock.jpg)
+Eine ruhige, deutschsprachige App-Startseite für Samsung-TVs: deine Apps, ein Hintergrundbild und die Uhrzeit.
 
-I built CleanFrame for one TV: my own Samsung The Frame, running Tizen. I'm sharing the code and setup notes as a starting point for other people to build on.
+Dieser Fork von **[nthnclrk/CleanFrame](https://github.com/nthnclrk/CleanFrame)** basiert auf der Arbeit von **Nathan Clark**. Er passt CleanFrame an einen **Samsung GU43TU8079UXZG mit Tizen 5.5** an – keinen The Frame. Die Fork-Version **0.6.3** baut auf Upstream-Commit `58ac92a` auf; ihre Versionsnummern sind unabhängig von späteren Upstream-Releases.
 
-**Use it at your own risk.** Most of the work has gone into making it work well on my TV. Very little has gone into making it portable. The setup scripts reflect my computer, TV and firmware, so expect to adapt them and test the result on your own hardware.
+![Deutsche Oberfläche in der Browser-Vorschau mit öffentlichen Schriftarten](docs/images/cleanframe-dock.jpg)
 
-I highly recommend forking it and building on top of it, ideally with a coding agent that can help you understand and adapt the setup. Start with the browser preview, make the interface your own, then work through TV installation when you're ready. Native Home/startup changes need particular care; the setup guide covers the risks and recovery steps.
+## Änderungen gegenüber dem Original
 
-## Try the interface
+- Deutsche Oberfläche einschließlich Einstellungen, Hinweisen, Zugänglichkeitsbeschriftungen und Hintergrundbildnamen.
+- Uhrzeit im **24-Stunden-Format**, einschließlich führender Null: `09:07`.
+- Sieben vorausgewählte Apps: Netflix, YouTube, Prime Video, Disney+, Apple TV, ARD Mediathek und ZDF.
+- Weiße ARD- und ZDF-Logos passend zu den übrigen App-Symbolen.
+- Eigenes CleanFrame-App-Icon mit Bilderrahmen, Landschaft und Sonne statt des bisherigen „F“.
+- **TV-Einstellungen statt Art Mode** für den Fernseher ohne Frame-Funktionen.
+- Manifest-Mindestversion Tizen 5.5 und ergänzte Filter für System-Apps.
+- Windows-Unterstützung im Browser-Testwerkzeug. Die alten Python-npm-Befehle und der Signierprozess sind nicht vollständig auf Windows portiert; siehe unten.
 
-You need Node.js 22.13+ (22 LTS), or 24+, and Python 3.10+ to run the browser preview.
+Die vorhandenen Listen-/Leistenlayouts, Hintergrundbilder, öffentlichen Schriftarten und lokalen Einstellungen bleiben erhalten. Gespeicherte App-Auswahl und Reihenfolge haben Vorrang vor den sieben Vorgaben. Die Startseite bietet weiterhin Platz für maximal neun Apps.
+
+## Was tatsächlich auf dem TV funktioniert
+
+| Bereich | Ergebnis |
+| --- | --- |
+| Gerät | Samsung GU43TU8079UXZG, Tizen 5.5 / ARMv7, Firmware `T-NKLDEUC-2743.0` |
+| Installation | Mit eigener Samsung-App-Identität und eigenen Zertifikaten installiert; bis Fork-Version 0.6.3 aktualisiert |
+| Oberfläche | Darstellung, Pfeiltasten-Navigation und Netflix-Start vom Besitzer bestätigt |
+| Anpassungen | Deutsche Oberfläche, 24-Stunden-Uhr, ARD-/ZDF-Logos und neues Icon in Samsungs App-Liste bestätigt |
+| Physische Home-Taste | **Nicht umgestellt**; öffnet weiterhin Samsungs Oberfläche |
+| Fester Autostart | **Nicht eingerichtet** |
+| Weitere TV-Modelle | Nicht durch diesen Fork verifiziert |
+
+**Dies ist eine eigenständige App, kein fertiger Ersatz für Samsungs System-Launcher.** Das Verlassen von Netflix kann weiterhin zur Samsung-Oberfläche führen. Home-Taste, Autostart, Root und Firmware wurden nicht verändert. Die native Untersuchung wurde pausiert; sie ist keine Installationsvoraussetzung.
+
+Die vorhandenen nativen Upstream-Helfer sind für andere Geräte und Firmwarestände abgesichert. Nicht auf diesem TV ausführen oder ihre Schutzprüfungen entfernen. Eine App-Sicherung ist außerdem **kein vollständiges TV-Systembackup**.
+
+Details und getrennte Upstream-Ergebnisse stehen in [Kompatibilität](docs/compatibility.md). Nutzung auf eigene Verantwortung; es gibt keine allgemeine Kompatibilitäts- oder dauerhafte Laufzeitgarantie.
+
+## Browser-Vorschau
+
+Voraussetzungen: Node.js **22.13+ aus der 22er-LTS-Reihe oder 24+**, Python **3.10+**.
 
 ```sh
-git clone https://github.com/nthnclrk/CleanFrame.git
+git clone https://github.com/jooonaaassssss/CleanFrame.git
 cd CleanFrame
 npm ci
+```
+
+**Windows / PowerShell:**
+
+```powershell
+$env:PYTHONUTF8 = '1'
+python scripts\preview.py --public-fonts
+```
+
+**macOS / Linux:**
+
+```sh
 npm run dev:public
 ```
 
-Open [localhost:4795/home/](http://localhost:4795/home/). Use the arrow keys, Enter and Escape, or click the controls. App launches and Samsung screens require a TV; the preview reports that limitation when you select them.
+Öffne [localhost:4795/home/](http://localhost:4795/home/). Pfeiltasten, Eingabe und Escape entsprechen Navigation, OK und Zurück. Die Vorschau steuert keinen Fernseher. App-Starts funktionieren erst auf einem eingerichteten TV.
 
-The public preview uses the included Manrope, Geist and Newsreader fonts.
+Alle benötigten Bilder, Logos und öffentlichen Schriftarten sind enthalten; kostenpflichtige Schriftarten sind nicht erforderlich.
 
-## What you can change
+## Auf dem eigenen Fernseher installieren
 
-- Choose a List or Dock layout, with icons, names or both.
-- Use a photograph, light or dark background, with a simple 12-hour clock.
-- Adjust typography, focus and glass materials through the same Settings interface.
-- Choose and reorder Home apps; discover installed apps on the TV.
-- Select from fifteen wallpapers and save your preferences locally.
+Es gibt hier **keine persönlichen Signierschlüssel und kein universell installierbares signiertes Paket**.
 
-The glass and blur are rendered ahead of time. The TV loads the finished images and uses transforms and opacity for focus feedback.
+1. Zunächst die Browser-Vorschau und die [Kompatibilitätsgrenzen](docs/compatibility.md) prüfen.
+2. Samsungs offizielle TV-Entwicklungswerkzeuge verwenden und eine **eigene, SDK-generierte Paket-/App-ID** sowie eigene Autor-/Distributorzertifikate anlegen. Das Distributorzertifikat muss den eigenen TV abdecken.
+3. Die persönlichen Werte ausschließlich lokal halten. Für die bestehenden macOS-/Linux-Paketwerkzeuge dient [signing.example.json](signing.example.json) als Vorlage für die ignorierte `.local/signing.json`. Unter Windows mit den offiziellen Samsung-Werkzeugen vorbereiten und signieren.
+4. Vor Veränderungen den eigenen Ausgangszustand und die Schlüssel sichern. Installation und sichtbare Funktion am eigenen Gerät prüfen.
+5. Bei Updates dieselbe eigene App-ID und dasselbe Autorenzertifikat beibehalten, damit keine zweite App entsteht. Eine vorherige Deinstallation ist normalerweise nicht nötig und kann Einstellungen löschen.
 
-## Use a coding agent
+Der [Entwicklungsleitfaden](docs/development.md#local-tv-tools-and-signing) beschreibt die Werkzeuge. Der ausführliche [Upstream-TV-Leitfaden](docs/agent-tv-setup-guide.md) enthält zusätzlich Frame-spezifische und native Schritte; er ist **kein ungeprüft ausführbarer Installer für diesen Fork**.
 
-Open this repo in a local coding agent and give it a bounded change:
+Der öffentliche Export behält die Referenzidentität des Quellcodes. Er ist eine **unsignierte Ausgangsbasis**, kein fertig für deinen TV vorbereitetes Paket. Vor einer Installation die eigene Identität verwenden und selbst signieren.
 
-```text
-Read AGENTS.md, docs/development.md and docs/interaction-behaviour.md.
-Help me adapt CleanFrame. Start with the public-font browser preview.
-My first change is: <describe one change>.
-Preserve remote navigation, saved preferences and the ES5 runtime.
-Run the source checks and relevant browser checks. Show the result.
-This task is browser-only: do not connect to a TV, sign or install a
-package, or change Home/startup settings.
+Nach der Installation benötigt die App keinen laufenden Entwicklungs-PC. Schlüssel, Passwörter und Wiederherstellungskopien für spätere Updates behalten.
+
+## Prüfen und bauen
+
+Die Browserprüfungen verwenden nur lokale Chromium-Profile und eine Vorschau auf dem eigenen PC, keinen echten TV.
+
+**Windows / PowerShell:**
+
+```powershell
+npm run lint
+$env:PYTHONUTF8 = '1'
+python scripts\check.py
+node --test scripts\test-device.mjs
+npx playwright install chromium
+$env:CLEANFRAME_PUBLIC_FONTS = '1'
+node scripts\check-browser.mjs
+python scripts\check-public.py
+python scripts\export-public.py
 ```
 
-See [working with an agent](docs/for-agents.md) for the TV setup prompt and the distinction between UI work, app installation and native Home changes. An agent needs local computer access for TV work; a hosted chat cannot reach your TV merely by reading this repo.
-
-## Put it on a TV
-
-Use the staged [Samsung The Frame setup guide](docs/agent-tv-setup-guide.md) to understand the process used on my TV and adapt it to yours. It covers the remote's Developer Mode sequence, official Samsung tools, your own certificates and app identity, installation, visible checks and recovery.
-
-Signing supports an ignored `.local/signing.json` based on `signing.example.json`: select your SDK, existing certificate profile and your own SDK-generated app identity. See [local signing setup](docs/development.md#local-tv-tools-and-signing). The TV installation commands and native Home helper still contain reference-machine assumptions. Your agent must check the installed-app IDs and each device stage with you. Installing the app and assigning the remote Home button are separate steps.
-
-| Area | Evidence and limits |
-| --- | --- |
-| Reference hardware | Samsung QA55LS03DAWXXY / LS03D, firmware 2130.0, Tizen 9.0, 32-bit ARM |
-| App installation | Signed installation and launch commands succeeded through 0.6.1. Latest rendering and remote feel still need physical observation. |
-| App launch and Home | Netflix/YouTube launch and physical Home from Netflix were confirmed on the reference setup. |
-| Still open | Normal power-on after streaming/Art Mode, corrected Smart Hub escape and native Art Mode destinations need definite physical checks. |
-| Other TVs | No compatibility claim. This is Tizen source; Android TV, Google TV, LG webOS and Roku need their own implementations. |
-
-The detailed [device record](docs/tv-status.md) separates observed results from SDK responses. Native Home/startup uses undocumented, guarded helpers; it is optional and can fail after firmware changes. Keep a recovery baseline before attempting that work. The app can be opened manually without it.
-
-## Develop and check
+**macOS / Linux:**
 
 ```sh
 npm run check
@@ -78,25 +111,18 @@ npm run check:public
 npm run export:public
 ```
 
-The browser checks use isolated Chromium profiles and a loopback preview. They never contact a TV. The public export creates `dist/CleanFrame-public-unsigned.wgt`, with public fonts and notices. It needs your own identity and signing before installation. It does not certify asset redistribution rights or device compatibility.
+Die Signierwerkzeug-Tests benötigen POSIX-Module und laufen deshalb nicht unter Windows; die GitHub-Actions-Prüfung verwendet Linux. Es ist nicht erforderlich, dafür WSL einzurichten.
 
-| Location | Purpose |
-| --- | --- |
-| `app/` | Current packaged UI and runtime assets |
-| `scripts/` | Preview, validation, asset generation and reference TV tools |
-| [Development](docs/development.md) / [testing](docs/testing.md) | Runtime map, preferences, checks and device boundaries |
-| [Assets](docs/assets.md) / [third-party notices](THIRD_PARTY_NOTICES.md) | Rendering recipes, font separation and asset provenance |
-| [Asset sources](docs/asset-sources.md) | Photo credits and verification of the bundled third-party assets |
-| `.local/`, `dist/` | Ignored private setup, recovery data, generated files and packages |
+Der Export erzeugt `dist/CleanFrame-public-unsigned.wgt` mit öffentlichen Schriftarten und Lizenzhinweisen. Persönliche Pakete, Testberichte und lokale Konfigurationen bleiben ignoriert. Das App-Icon lässt sich nach Installation von Chromium mit `node scripts/build-app-icon.mjs` aus seiner SVG-Quelle neu erzeugen.
 
-## Contribute
+Weitere Informationen: [Entwicklung](docs/development.md), [Tests](docs/testing.md), [Bedienung](docs/interaction-behaviour.md), [Asset-Erzeugung](docs/assets.md) und [Veröffentlichungsprüfung](docs/public-release.md). Weiterführende Upstream-Dokumentation ist überwiegend englisch.
 
-Fork it, experiment and build something that suits your TV. If you find a useful fix or improve the setup instructions, contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before a larger change. Reports should include model, firmware and the observed result, with private identifiers removed.
+## Lizenz, Quellen und Datenschutz
 
-## Licence and credits
+- Der ursprüngliche Code steht unter der **[MIT-Lizenz](LICENSE)**. Nathan Clarks Copyright- und Lizenztext bleiben unverändert enthalten. Die Code-/Dokumentationsänderungen dieses Forks und das neue App-Icon werden ebenfalls unter MIT bereitgestellt.
+- Drittmaterial ist **nicht pauschal MIT**: Manrope, Geist und Newsreader verwenden SIL OFL 1.1; die Fotos die Unsplash License; die Service-Logos die in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) genannten MIT-/CC0-Quellen.
+- ARD stammt aus dem MIT-lizenzierten Custom-Brand-Icons-Projekt, ZDF aus Simple Icons unter CC0. Quellen und Anpassungen sind bei den Assets dokumentiert. Markenrechte bleiben bei den jeweiligen Inhabern.
+- Beim Weitergeben die Lizenztexte, Copyright-Hinweise und Asset-Quellen beibehalten. Kostenpflichtige Pangram-Schriftdateien sind nicht Bestandteil dieses Forks.
+- Keine Zertifikate, Schlüssel, Passwörter, Kontotokens, persönlichen Gerätekennungen, Netzwerkadressen, Backups oder signierten TV-Pakete veröffentlichen.
 
-CleanFrame's original code and documentation use the [MIT licence](LICENSE). Fonts, photographs and logos retain their own terms; read [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Paid Pangram binaries are excluded from Git and public exports. A local package may include them, so keep personal builds separate from public downloads.
-
-The [release review](docs/public-release.md) records the publication checks. Third-party assets retain the terms listed in their notices. CleanFrame is an independent project with no Samsung or streaming-service affiliation.
-
-[TV Detox](https://github.com/Ansub/tv-detox) is a useful example of making an agent-assisted TV project approachable. Its Android setup is a different implementation; the prompts and instructions here are written for CleanFrame and Tizen.
+CleanFrame und dieser Fork sind unabhängig von Samsung, ARD, ZDF und den übrigen genannten Diensten. Es besteht keine behauptete Unterstützung oder Partnerschaft. Beiträge sind unter Beachtung von [CONTRIBUTING.md](CONTRIBUTING.md) willkommen.

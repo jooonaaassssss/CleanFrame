@@ -1,5 +1,26 @@
 # Interaction behaviour — 0.6.1
 
+## This fork's non-Frame adaptation
+
+In this checkout, TV settings replaces the Art Mode control described below.
+Fresh preferences select Netflix, YouTube, Prime Video, Disney+, Apple TV,
+ARD Mediathek and ZDF. Existing saved choices and the nine-app limit are
+preserved. The physical Home button is not reassigned: this is a standalone
+app, not a system launcher. The remaining descriptions of Art Mode document
+upstream Frame behaviour, not this deployment.
+
+The 0.6.3 fork uses German interface text (including accessibility
+labels, status messages and wallpaper names), a zero-padded 24-hour clock,
+and bundled monochrome ARD and ZDF marks. Service and typeface names remain
+unchanged. Updating the same owner-specific application preserves its saved
+order and appearance; no uninstall is needed. The English descriptions below
+continue to document upstream behaviour.
+
+The app's Samsung launcher icon is an original landscape in an ivory frame
+on a dark green background. Its editable source is
+`app/assets/cleanframe-logo.svg`; `node scripts/build-app-icon.mjs` rebuilds
+the 256 x 256 `app/icon.png` referenced by the widget manifest.
+
 ## Home
 
 - Dock: Left/Right scrolls the apps without wrapping. Up enters the top-right controls, starting with Art Mode or the last selected control. Left/Right moves between Art Mode, All apps and Settings. Down or Back returns to the selected app. The clock is at the top left.

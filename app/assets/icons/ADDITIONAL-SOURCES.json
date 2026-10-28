@@ -1,5 +1,17 @@
 [
   {
+    "icon": "ard",
+    "source": "https://github.com/elax46/custom-brand-icons/blob/a53cabf49bf439023a8f33585af30d783bffe51b/icon-svg/ARD.svg",
+    "licence": "MIT",
+    "note": "Shape unchanged; white fill for launcher. Licence retained in CUSTOM-BRAND-ICONS-LICENSE.txt."
+  },
+  {
+    "icon": "zdf",
+    "source": "https://github.com/simple-icons/simple-icons/blob/11.15.0/icons/zdf.svg",
+    "licence": "CC0-1.0",
+    "note": "Shape unchanged; white fill for launcher."
+  },
+  {
     "icon": "spotify",
     "source": "https://github.com/simple-icons/simple-icons/blob/develop/icons/spotify.svg",
     "licence": "CC0-1.0",

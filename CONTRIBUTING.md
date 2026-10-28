@@ -1,10 +1,13 @@
 # Contributing to CleanFrame
 
-CleanFrame was built for one Samsung The Frame, with very little work on portability. Use it at your own risk and treat it as a starting point for your own version. Forks and adaptations are encouraged. Contributions back to this repo should keep the remote experience simple and state what has actually been tested.
+This is the German, standalone Tizen 5.5 adaptation of [Nathan Clark's CleanFrame](https://github.com/nthnclrk/CleanFrame), tested on a Samsung GU43TU8079UXZG. The original targets a Samsung The Frame. Neither is a general compatibility guarantee. Contributions to this fork should preserve its German interface, 24-hour clock, non-Frame controls and existing preferences, and distinguish browser evidence from physical-TV results.
 
 ## Start in the browser
 
 Use the README's public-font setup. Keep changes in `app/` and the maintained tools in `scripts/`. Use your browser to develop interface changes.
+
+The commands below are for macOS/Linux. Windows contributors should use the
+equivalent commands in the README; POSIX signing-tool tests run in Linux CI.
 
 ```sh
 npm ci

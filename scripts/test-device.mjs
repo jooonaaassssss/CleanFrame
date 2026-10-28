@@ -45,7 +45,7 @@ test('catalogue timeout and late callbacks finish only once', () => {
   assert.equal(results.length, 0);
   h.advance(1);
   assert.equal(results.length, 1);
-  assert.match(results[0].error.message, /did not respond/);
+  assert.match(results[0].error.message, /nicht geantwortet/);
   h.requests[0].ok([]);
   h.requests[0].fail({ message: 'Late failure' });
   assert.equal(results.length, 1);
@@ -62,6 +62,10 @@ test('regional streaming apps stay distinct and system helpers stay hidden', () 
     { id: 'cj37Ni3qXM.HBONow', name: 'HBO Max', show: false },
     { id: '2022ePop01.SmartTV', name: 'Smart TV', show: true },
     { id: 'd0m1lV1nt2.emanual', name: 'User Guide', show: true },
+    { id: 'EJZZ9Mr6D2.emanual', name: 'e-Manual', show: true },
+    { id: 'HVPOP9POZU.SmartTV', name: 'ePop-2020-Nike', show: true },
+    { id: 'w2VwCK465D.OTApp', name: 'Samsung TV Plus Privacy Settings', show: true },
+    { id: 'qtMHjALHus.TVDeviceCare', name: 'TVDeviceCare', show: true },
     { id: 'Hidden1234.Consumer', name: 'Hidden app', show: false }
   ]);
   assert.equal(apps.length, 3);
@@ -75,7 +79,20 @@ test('launch keeps its eight-second deadline independently of discovery', () => 
   h.device.launchApp('Synthetic.App', error => results.push(error));
   h.advance(8000);
   assert.equal(results.length, 1);
-  assert.match(results[0].message, /did not respond/);
+  assert.match(results[0].message, /nicht geantwortet/);
   h.launches[0].ok();
   assert.equal(results.length, 1);
+});
+
+test('ARD and ZDF retain native launch IDs and bundled logo brands', () => {
+  const h = harness();
+  let apps;
+  h.device.apps((error, value) => { assert.equal(error, null); apps = value; });
+  h.requests[0].ok([
+    { id: 'SrAoJxGQUf.ARD', name: 'ARD Mediathek', show: true },
+    { id: 'yPSlpvfeTf.ZDFmediathek', name: 'ZDF', show: true }
+  ]);
+  assert.equal(apps.length, 2);
+  assert.equal(apps.find(a => a.appId === 'SrAoJxGQUf.ARD').brand, 'ard');
+  assert.equal(apps.find(a => a.appId === 'yPSlpvfeTf.ZDFmediathek').brand, 'zdf');
 });

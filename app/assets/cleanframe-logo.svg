@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">CleanFrame</title>
+  <defs>
+    <radialGradient id="background" cx="30%" cy="15%" r="100%">
+      <stop stop-color="#36483f"/>
+      <stop offset="1" stop-color="#18211e"/>
+    </radialGradient>
+    <linearGradient id="landscape" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#a9c5b2"/>
+      <stop offset="1" stop-color="#6f9684"/>
+    </linearGradient>
+    <clipPath id="window">
+      <rect x="48" y="58" width="160" height="140" rx="18"/>
+    </clipPath>
+  </defs>
+  <rect width="256" height="256" fill="url(#background)"/>
+  <g clip-path="url(#window)">
+    <circle cx="166" cy="99" r="17" fill="#e7c58c"/>
+    <path d="M40 172 91 120a8 8 0 0 1 12 0l44 46 25-26a8 8 0 0 1 12 0l33 35v32H40Z" fill="url(#landscape)"/>
+    <path d="M40 185c40-25 73-25 104-9 25 13 48 15 73 4v27H40Z" fill="#4a7263"/>
+  </g>
+  <rect x="44" y="54" width="168" height="148" rx="22" fill="none" stroke="#f3f0e5" stroke-width="8"/>
+</svg>

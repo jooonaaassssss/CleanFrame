@@ -2,6 +2,10 @@
 
 ## Offline app changes
 
+The shell commands below are for macOS/Linux. See the README for Windows
+equivalents; the signing-tool tests import POSIX-only `pty`/`termios` and
+therefore run on Linux CI, not on Windows.
+
 ```sh
 npm ci
 npm run check
@@ -33,7 +37,14 @@ For manual review, use `npm run dev` and open `/home/`. Use the arrow keys, Ente
 
 ## Physical TV checks
 
-Run these only under a task that includes TV testing. Announce any installation or launch first, then follow `development.md`. SDK success alone is not a visible result. Ask Nathan to confirm the normal remote behaviour and record the version, firmware, result and any open checks in `tv-status.md`.
+Run these only under a task that includes TV testing. Announce any installation
+or launch first, then follow `development.md`. SDK success alone is not a
+visible result. Ask the TV owner to confirm normal remote behaviour and
+record the version, firmware, result and open checks in `compatibility.md`.
+The list below originated with upstream's Frame setup: in this fork the
+physical Home button stays with Samsung, Art Mode is replaced by TV settings,
+and fixed startup is not configured. Do not treat those unimplemented
+features as successful tests or enable them as part of browser work.
 
 1. Move in both directions through each layout and Settings; check focus, response and readable labels from the sofa.
 2. Launch Netflix/YouTube, press Home to return, and check the selected app. Treat streaming apps' own Back handling separately.
